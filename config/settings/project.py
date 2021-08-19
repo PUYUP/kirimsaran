@@ -4,7 +4,6 @@ from .base import *
 
 
 PROJECT_APPS = [
-    # 'channels',
     'corsheaders',
     'rest_framework',
     'django_filters',
@@ -103,24 +102,6 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'PAGE_SIZE': 25
 }
-
-
-# Django Sessions
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/2.2/ref/settings/
-"""
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = False
-
-SECURE_REFERRER_POLICY = 'same-origin'
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = False
-SECURE_SSL_REDIRECT = False
-SECURE_HSTS_SECONDS = 5
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-X_FRAME_OPTIONS = 'DENY'
-"""
 
 
 # Django csrf
