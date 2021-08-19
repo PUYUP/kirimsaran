@@ -158,7 +158,7 @@ class AbstractProfile(models.Model):
     birthdate = models.DateField(blank=True, null=True)
     about = models.TextField(blank=True, null=True)
     picture = models.ImageField(
-        upload_to='images/person',
+        upload_to='person',
         max_length=500,
         null=True,
         blank=True
