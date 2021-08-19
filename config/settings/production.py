@@ -61,6 +61,7 @@ CSRF_TRUSTED_ORIGINS = [
     '.miniloka.com',
     '.kirimsaran.com',
     'puyup-app.web.app',
+    'puyup-app.firebaseapp.com',
 ]
 
 
@@ -71,6 +72,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://puyup-app.web.app',
+    'https://puyup-app.firebaseapp.com',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
