@@ -14,7 +14,6 @@ ALLOWED_HOSTS = [
     '[::1]',
     '123.100.226.161',
     'console.miniloka.com',
-    'app.miniloka.com',
 ]
 
 
@@ -60,7 +59,8 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
     '.miniloka.com',
-    '.kirimsaran.com'
+    '.kirimsaran.com',
+    'puyup-app.web.app',
 ]
 
 
@@ -73,6 +73,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost',
     'http://localhost:8100',
     'https://dashboard.kirimsaran.com',
+    'https://puyup-app.web.app',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
