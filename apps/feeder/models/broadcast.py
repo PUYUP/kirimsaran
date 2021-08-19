@@ -34,8 +34,8 @@ class AddressedManager(models.Manager):
                 'message': obj.broadcast.message
             }
 
-            send_sms.delay(data)  # with celery
-            # send_sms(data)  # without celery
+            # send_sms.delay(data)  # with celery
+            send_sms(data)  # without celery
         return super().bulk_create(objs, **kwargs)
 
 
