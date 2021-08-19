@@ -72,7 +72,7 @@ class AbstractSpread(AbstractCommonField):
         ]
     )
     qrcode = models.ImageField(
-        upload_to='media/images/qrcodes',
+        upload_to='images/qrcodes',
         max_length=500,
         null=True,
         blank=True

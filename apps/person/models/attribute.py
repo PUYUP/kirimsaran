@@ -193,13 +193,13 @@ class AbstractAttributeValue(models.Model):
         db_index=True
     )
     value_file = models.FileField(
-        upload_to='media/files/attribute',
+        upload_to='files/attribute',
         max_length=255,
         blank=True,
         null=True
     )
     value_image = models.ImageField(
-        upload_to='media/images/attribute',
+        upload_to='images/attribute',
         max_length=255,
         blank=True,
         null=True
