@@ -13,13 +13,13 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     '123.100.226.161',
-    'console.miniloka.com',
+    'apiks.cliptask.com',
 ]
 
 
 # SENTRY
 sentry_sdk.init(
-    dsn="https://838662265460466ead59e184aac8cae8@o400235.ingest.sentry.io/5819932",
+    dsn="https://a68f9bedeb1f4b76a7c0cf41917a6657@o400235.ingest.sentry.io/5917996",
     integrations=[DjangoIntegration()],
 
     # Set traces_sample_rate to 1.0 to capture 100%
@@ -31,7 +31,6 @@ sentry_sdk.init(
     # django.contrib.auth) you may enable sending PII data.
     send_default_pii=True
 )
-
 
 # Django Sessions
 # ------------------------------------------------------------------------------
@@ -52,13 +51,13 @@ X_FRAME_OPTIONS = 'DENY'
 # Django csrf
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/2.2/ref/csrf/
-CSRF_COOKIE_DOMAIN = '.miniloka.com'
+CSRF_COOKIE_DOMAIN = '.cliptask.com'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
-    '.miniloka.com',
+    '.cliptask.com',
     '.kirimsaran.com',
     'puyup-app.web.app',
     'puyup-app.firebaseapp.com',
@@ -73,6 +72,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://puyup-app.web.app',
     'https://puyup-app.firebaseapp.com',
+    'https://kirimsaran.com'
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
