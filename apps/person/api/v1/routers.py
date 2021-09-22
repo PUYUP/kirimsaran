@@ -13,8 +13,8 @@ router.register('securecodes', SecureCodeViewSet, basename='securecode')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('token/', TokenObtainPairViewExtend.as_view(), name='token_obtain'),
-    path('token-refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/', TokenObtainPairViewExtend.as_view(), name='token-obtain'),
+    path('token-refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('password-recovery/', RecoveryPasswordAPIView.as_view(),
          name='password-recovery'),
 ]

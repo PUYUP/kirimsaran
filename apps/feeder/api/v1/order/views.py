@@ -12,14 +12,10 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
-from .serializers import (
-    CreateAddressedSerializer,
-    ListAddressedSerializer,
-    RetrieveAddressedSerializer
-)
+from .serializers import CreateOrderSerializer, ListOrderSerializer, RetrieveOrderSerializer
 from ....helpers import build_result_pagination
 
-Addressed = apps.get_registered_model('feeder', 'Addressed')
+Order = apps.get_registered_model('feeder', 'Order')
 
 # Define to avoid used ...().paginate__
 _PAGINATOR = LimitOffsetPagination()
@@ -35,50 +31,52 @@ class BaseViewSet(viewsets.ViewSet):
         return super().initialize_request(request, *args, **kwargs)
 
 
-class AddressedViewSet(BaseViewSet):
+class OrderViewSet(BaseViewSet):
     """
     GET
     -----
 
-        .../addresseds/?broadcast=uuid64
+        No-params
 
 
     POST
     -----
 
-        [
-            {
-                "broadcast": "uuid64",
-                "suggest": "uuid64""
-            }
-        ]
-
+        {
+            "user": "<hidden field>",
+            "broadcast": "01688d70-ede1-46a3-938d-d2f21809c3ae",
+            "fragment": "114de3ea-65cb-4f32-b406-2afcd96b5921",
+            "metas": [
+                {"meta_key": "rating", "meta_value": "1"}
+            ],
+            "items": [
+                {"target": "72f5eb83-7d71-4c80-8b34-55dcea635587"}
+            ]
+        }
     """
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
     throttle_classes = (UserRateThrottle,)
 
     def queryset(self):
-        return Addressed.objects \
-            .prefetch_related('broadcast', 'suggest') \
-            .select_related('broadcast', 'suggest') \
-            .all()
+        return Order.objects \
+            .prefetch_related('user', 'broadcast', 'fragment') \
+            .select_related('user', 'broadcast', 'fragment') \
+            .filter(user_id=self.request.user.id)
 
     def queryset_instance(self, uuid, for_update=False):
         try:
             if for_update:
-                return self.queryset().select_for_update() \
-                    .get(uuid=uuid, listing__user_id=self.request.user.id)
+                return self.queryset().select_for_update().get(uuid=uuid)
             return self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
 
     @transaction.atomic
     def create(self, request, format=None):
-        serializer = CreateAddressedSerializer(
+        serializer = CreateOrderSerializer(
             data=request.data,
-            context=self.context,
-            many=True
+            context=self.context
         )
 
         if serializer.is_valid(raise_exception=True):
@@ -92,8 +90,7 @@ class AddressedViewSet(BaseViewSet):
     @transaction.atomic()
     def delete(self, request, uuid=None):
         try:
-            instance = self.queryset() \
-                .get(uuid=uuid, listing__user_id=request.user.id)
+            instance = self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
 
@@ -104,30 +101,16 @@ class AddressedViewSet(BaseViewSet):
         instance.delete()
 
         # return object
-        serializer = RetrieveAddressedSerializer(
+        serializer = RetrieveOrderSerializer(
             instance_copy,
             context=self.context
         )
         return Response(serializer.data, status=response_status.HTTP_200_OK)
 
     def list(self, request, format=None):
-        # only owner can see data
-        queryset = self.queryset().filter(broadcast__user_id=request.user.id)
-        broadcast = request.query_params.get('broadcast', None)
-        if not broadcast:
-            raise ValidationError(detail={
-                'broadcast': _("Broadcast required")
-            })
-
-        try:
-            queryset = queryset.filter(broadcast__uuid=broadcast)
-        except DjangoValidationError as e:
-            raise ValidationError(detail={
-                'spread': str(e)
-            })
-
+        queryset = self.queryset()
         paginator = _PAGINATOR.paginate_queryset(queryset, request)
-        serializer = ListAddressedSerializer(
+        serializer = ListOrderSerializer(
             paginator,
             context=self.context,
             many=True
@@ -138,6 +121,5 @@ class AddressedViewSet(BaseViewSet):
 
     def retrieve(self, request, uuid=None, format=None):
         instance = self.queryset_instance(uuid)
-        serializer = RetrieveAddressedSerializer(
-            instance, context=self.context)
+        serializer = RetrieveOrderSerializer(instance, context=self.context)
         return Response(serializer.data, status=response_status.HTTP_200_OK)

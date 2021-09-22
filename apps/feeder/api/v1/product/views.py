@@ -41,14 +41,14 @@ class ProductViewSet(BaseViewSet):
     GET
     -----
 
-        .../products/?listing=uuid64
+        .../products/?listing=uuid4
 
 
     POST & PATCH
     -----
 
         {
-            "listing": "uuid64",
+            "listing": "uuid4",
             "label": "My business name",
             "description": "Sell all not food"
         }
@@ -62,13 +62,13 @@ class ProductViewSet(BaseViewSet):
         return Product.objects \
             .prefetch_related('listing') \
             .select_related('listing') \
-            .all()
+            .filter(listing__user_id=self.request.user.id)
 
     def queryset_instance(self, uuid, for_update=False):
         try:
             if for_update:
                 return self.queryset().select_for_update() \
-                    .get(uuid=uuid, listing__user_id=self.request.user.id)
+                    .get(uuid=uuid)
             return self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
@@ -128,18 +128,16 @@ class ProductViewSet(BaseViewSet):
         return Response(serializer.data, status=response_status.HTTP_200_OK)
 
     def list(self, request, format=None):
+        queryset = self.queryset()
         listing = request.query_params.get('listing', None)
-        if not listing:
-            raise ValidationError(detail={
-                'listing': _("Listing required")
-            })
 
-        try:
-            queryset = self.queryset().filter(listing__uuid=listing)
-        except DjangoValidationError as e:
-            raise ValidationError(detail={
-                'listing': str(e)
-            })
+        if listing:
+            try:
+                queryset = queryset.filter(listing__uuid=listing)
+            except DjangoValidationError as e:
+                raise ValidationError(detail={
+                    'listing': str(e)
+                })
 
         paginator = _PAGINATOR.paginate_queryset(queryset, request)
         serializer = ListProductSerializer(

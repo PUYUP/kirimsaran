@@ -4,6 +4,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.utils import timezone
+from django.conf import settings
 
 from .tasks import send_securecode_email, send_securecode_msisdn
 from .utils import get_users
@@ -53,22 +54,34 @@ def securecode_save_handler(sender, instance, created, **kwargs):
 
             if instance.challenge == challenges.PASSWORD_RECOVERY:
                 for user in get_users(instance.issuer):
-                    send_securecode_email.delay(data)  # with celery
-                    # send_securecode_email(data)  # without celery
+                    # send to multiple users
+                    if settings.DEBUG:
+                        send_securecode_email(data)  # without celery
+                    else:
+                        send_securecode_email.delay(data)  # with celery
             else:
-                send_securecode_email.delay(data)  # with celery
-                # send_securecode_email(data)  # without celery
+                # send to single user
+                if settings.DEBUG:
+                    send_securecode_email(data)  # without celery
+                else:
+                    send_securecode_email.delay(data)  # with celery
         elif issuer_type == 'msisdn':
             # Send via SMS
             data.update({'msisdn': issuer})
 
             if instance.challenge == challenges.PASSWORD_RECOVERY:
                 for user in get_users(instance.issuer):
-                    send_securecode_email.delay(data)  # with celery
-                    # send_securecode_email(data)  # without celery
+                    # send to multiple users
+                    if settings.DEBUG:
+                        send_securecode_msisdn(data)  # without celery
+                    else:
+                        send_securecode_msisdn.delay(data)  # with celery
             else:
-                send_securecode_msisdn.delay(data)  # with celery
-                # send_securecode_msisdn(data)  # without celery
+                # send to single user
+                if settings.DEBUG:
+                    send_securecode_msisdn(data)  # without celery
+                else:
+                    send_securecode_msisdn.delay(data)  # with celery
 
         # mark oldest SecureCode as expired
         cls = instance.__class__

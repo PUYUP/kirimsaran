@@ -1,4 +1,13 @@
 from django.conf import settings
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+class Method(models.TextChoices):
+    PHONE = 'phone', _("Phone")
+    WHATSAPP = 'whatsapp', _("WhatsApp")
+    TELEGRAM = 'telegram', _("Telegram")
+    EMAIL = 'email', _("Email")
 
 
 class Pagination:

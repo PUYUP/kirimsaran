@@ -41,14 +41,14 @@ class FragmentViewSet(BaseViewSet):
     GET
     -----
 
-        .../fragments/?product=uuid64
+        .../fragments/?product=uuid4
 
 
     POST & PATCH
     -----
 
         {
-            "product": "uuid64",
+            "product": "uuid4",
             "label": "My business name",
             "description": "Sell all not food",
             "reward": "Some gift!"

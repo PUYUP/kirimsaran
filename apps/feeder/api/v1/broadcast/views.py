@@ -4,7 +4,6 @@ from django.db import transaction
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Exists, OuterRef
 
 from rest_framework import viewsets, status as response_status
 from rest_framework.exceptions import NotFound, ValidationError
@@ -22,7 +21,6 @@ from .serializers import (
 from ....helpers import build_result_pagination
 
 Broadcast = apps.get_registered_model('feeder', 'Broadcast')
-Addressed = apps.get_registered_model('feeder', 'Addressed')
 
 # Define to avoid used ...().paginate__
 _PAGINATOR = LimitOffsetPagination()
@@ -46,35 +44,41 @@ class BroadcastViewSet(BaseViewSet):
         No params
 
 
-    POST & PATCH
+    POST
+    -----
+
+        {
+            "product": "uuid4",
+            "label": "My business name",
+            "description": "Sell all not food",
+            "message": "SMS MESSGAE MAX 160"
+        }
+
+
+    PATCH
     -----
 
         {
             "label": "My business name",
             "description": "Sell all not food",
-            "reward": "A gift...",
             "message": "SMS MESSGAE MAX 160"
         }
-
     """
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
     throttle_classes = (UserRateThrottle,)
 
     def queryset(self):
-        addresseds = Addressed.objects.filter(broadcast_id=OuterRef('id'))
-
         return Broadcast.objects \
-            .prefetch_related('user') \
-            .select_related('user') \
-            .annotate(has_addressed=Exists(addresseds)) \
-            .all()
+            .prefetch_related('user', 'product', 'listing') \
+            .select_related('user', 'product', 'listing') \
+            .filter(user_id=self.request.user.id)
 
     def queryset_instance(self, uuid, for_update=False):
         try:
             if for_update:
                 return self.queryset().select_for_update() \
-                    .get(uuid=uuid, user_id=self.request.user.id)
+                    .get(uuid=uuid)
             return self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
@@ -115,8 +119,7 @@ class BroadcastViewSet(BaseViewSet):
     @transaction.atomic()
     def delete(self, request, uuid=None):
         try:
-            instance = self.queryset() \
-                .get(uuid=uuid, user_id=request.user.id)
+            instance = self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
 
@@ -134,7 +137,7 @@ class BroadcastViewSet(BaseViewSet):
         return Response(serializer.data, status=response_status.HTTP_200_OK)
 
     def list(self, request, format=None):
-        queryset = self.queryset().filter(user_id=request.user.id)
+        queryset = self.queryset()
         paginator = _PAGINATOR.paginate_queryset(queryset, request)
         serializer = ListBroadcastSerializer(
             paginator,
@@ -148,5 +151,7 @@ class BroadcastViewSet(BaseViewSet):
     def retrieve(self, request, uuid=None, format=None):
         instance = self.queryset_instance(uuid)
         serializer = RetrieveBroadcastSerializer(
-            instance, context=self.context)
+            instance,
+            context=self.context
+        )
         return Response(serializer.data, status=response_status.HTTP_200_OK)

@@ -6,7 +6,6 @@ import time
 
 from django.utils.translation import gettext_lazy as _
 from django.apps import apps
-from django.conf import settings
 
 from random import choice
 from string import ascii_letters, digits
@@ -87,3 +86,21 @@ def digihub_send_sms(msisdn, message):
 
     response = requests.post(url, json=payload, headers=headers)
     return response
+
+
+def censor_msisdn(value):
+    total_length = len(value)
+    get_begining = value[:3]
+    rest = total_length - len(get_begining)
+    z = value[-rest:]
+    c = [x.replace(x, '*') for x in z]
+
+    return get_begining + ''.join(c)
+
+
+def censor_email(value):
+    x = value.split('@')
+    y = [x.replace(x, '*') for x in x[0]]
+    z = x[1]
+
+    return ''.join(y) + '@' + z

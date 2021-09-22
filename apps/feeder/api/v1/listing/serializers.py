@@ -31,9 +31,7 @@ class RetrieveListingSerializer(ListListingSerializer):
 
 
 class CreateListingSerializer(BaseListingSerializer):
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta(BaseListingSerializer.Meta):
         fields = ('user', 'label', 'description',)

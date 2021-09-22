@@ -5,6 +5,7 @@ from django.apps import apps
 
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework import viewsets, status as response_status
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.response import Response
@@ -16,14 +17,20 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializers import (
     CreateUserSerializer,
+    ListUserSerializer,
+    RetrieveUserSerializer,
     TokenObtainPairSerializerExtend,
     UpdateUserSerializer
 )
 from ..profile.serializers import UpdateProfileSerializer
 from ..password.serializers import ChangePasswordSerializer
+from ....helpers import build_result_pagination
 
 UserModel = get_user_model()
 Profile = apps.get_model('person', 'Profile')
+
+# Define to avoid used ...().paginate__
+_PAGINATOR = LimitOffsetPagination()
 
 
 class BaseViewSet(viewsets.ViewSet):
@@ -72,6 +79,8 @@ class UserViewSet(BaseViewSet):
     permission_action = {
         'create': (AllowAny,),
         'partial_update': (IsAuthenticated,),
+        'list': (IsAuthenticated,),
+        'retrieve': (IsAuthenticated,),
     }
 
     def get_permissions(self):
@@ -129,6 +138,37 @@ class UserViewSet(BaseViewSet):
                 raise ValidationError(detail=str(e))
             return Response(serializer.data, status=response_status.HTTP_200_OK)
         return Response(serializer.errors, status=response_status.HTTP_406_NOT_ACCEPTABLE)
+
+    def list(self, request, format=None):
+        queryset = self.queryset()
+        paginator = _PAGINATOR.paginate_queryset(queryset, request)
+        serializer = ListUserSerializer(
+            paginator,
+            context=self.context,
+            many=True
+        )
+
+        results = build_result_pagination(self, _PAGINATOR, serializer)
+        return Response(results, status=response_status.HTTP_200_OK)
+
+    def retrieve(self, request, hexid=None, format=None):
+        try:
+            instance = self.queryset_instance(hexid=hexid)
+        except ObjectDoesNotExist:
+            raise NotFound()
+
+        # limit fields when other user see the user
+        fields = None
+        if str(request.user.hexid) != hexid:
+            fields = ('hexid', 'name', 'username', 'profile',)
+
+        serializer = RetrieveUserSerializer(
+            instance,
+            context=self.context,
+            fields=fields
+        )
+
+        return Response(serializer.data, status=response_status.HTTP_200_OK)
 
     # update profile
     @transaction.atomic

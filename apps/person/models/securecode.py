@@ -178,4 +178,4 @@ class AbstractSecureCode(models.Model):
             self.validate_otp()
 
         self.issuer_type = get_issuer_type(self.issuer)  # email or msisdn
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)

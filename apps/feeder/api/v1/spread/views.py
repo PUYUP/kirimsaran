@@ -1,14 +1,16 @@
 from copy import copy
+from uuid import UUID
 
 from django.db import transaction
+from django.db.models import Q
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets, status as response_status
 from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import UserRateThrottle
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -16,6 +18,7 @@ from .serializers import (
     CreateSpreadSerializer,
     ListSpreadSerializer,
     RetrieveSpreadSerializer,
+    RetrievePublicSpreadSerializer,
     UpdateSpreadSerializer
 )
 from ....helpers import build_result_pagination
@@ -41,35 +44,67 @@ class SpreadViewSet(BaseViewSet):
     GET
     -----
 
-        .../spreads/?fragment=uuid64
+        .../spreads/?fragment=uuid4&broadcast=uuid4
 
 
-    POST & PATCH
+    POST
+    -----
+
+        {   
+            "content_type": "fragment",
+            "object_id": "uuid4",
+            "allocation": 14,
+            "expiry_at": "Date time"
+        }
+
+
+    PATCH
     -----
 
         {
-            "fragment": "uuid64",
-            "allowed_used": 14,
-            "valid_until": "Date time"
+            "allocation": 14,
+            "expiry_at": "Date time"
         }
-
     """
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    throttle_classes = (UserRateThrottle,)
+    throttle_classes = (UserRateThrottle, AnonRateThrottle,)
+    permission_action = {
+        'retrieve': (AllowAny,),
+    }
+
+    def get_permissions(self):
+        """
+        Instantiates and returns
+        the list of permissions that this view requires.
+        """
+        try:
+            # return permission_classes depending on `action`
+            return [permission() for permission in self.permission_action[self.action]]
+        except KeyError:
+            # action is not set return default permission_classes
+            return [permission() for permission in self.permission_classes]
 
     def queryset(self):
         return Spread.objects \
-            .prefetch_related('fragment', 'listing') \
-            .select_related('fragment', 'listing') \
-            .all()
+            .prefetch_related('content_type', 'content_object') \
+            .select_related('content_type') \
+            .filter(
+                Q(fragment__user_id=self.request.user.id)
+                | Q(broadcast__user_id=self.request.user.id)
+            )
 
     def queryset_instance(self, uuid, for_update=False):
         try:
             if for_update:
-                return self.queryset().select_for_update() \
-                    .get(uuid=uuid, listing__user_id=self.request.user.id)
+                return self.queryset().select_for_update().get(uuid=uuid)
             return self.queryset().get(uuid=uuid)
+        except ObjectDoesNotExist:
+            raise NotFound()
+
+    def queryset_public_instance(self, identifier):
+        try:
+            return self.queryset().get(identifier=identifier)
         except ObjectDoesNotExist:
             raise NotFound()
 
@@ -109,8 +144,7 @@ class SpreadViewSet(BaseViewSet):
     @transaction.atomic()
     def delete(self, request, uuid=None):
         try:
-            instance = self.queryset() \
-                .get(uuid=uuid, listing__user_id=request.user.id)
+            instance = self.queryset().get(uuid=uuid)
         except ObjectDoesNotExist:
             raise NotFound()
 
@@ -128,17 +162,35 @@ class SpreadViewSet(BaseViewSet):
         return Response(serializer.data, status=response_status.HTTP_200_OK)
 
     def list(self, request, format=None):
+        queryset = self.queryset()
         fragment = request.query_params.get('fragment', None)
-        if not fragment:
+        broadcast = request.query_params.get('broadcast', None)
+
+        if not fragment and not broadcast:
             raise ValidationError(detail={
-                'fragment': _("Product required")
+                'param': _("Fragment or Broadcast required")
+            })
+
+        if fragment and broadcast:
+            raise ValidationError(detail={
+                'param': _("Can't use both Fragment and Broadcast")
             })
 
         try:
-            queryset = self.queryset().filter(fragment__uuid=fragment)
+            # validate uuid here
+            # read this docs: https://docs.djangoproject.com/en/3.2/ref/contrib/contenttypes/
+            if fragment:
+                queryset = queryset.filter(
+                    Q(fragment__isnull=False) & Q(fragment__uuid=fragment)
+                )
+
+            if broadcast:
+                queryset = queryset.filter(
+                    Q(broadcast__isnull=False) & Q(broadcast__uuid=broadcast)
+                )
         except DjangoValidationError as e:
             raise ValidationError(detail={
-                'fragment': str(e)
+                'param': str(e)
             })
 
         paginator = _PAGINATOR.paginate_queryset(queryset, request)
@@ -152,6 +204,23 @@ class SpreadViewSet(BaseViewSet):
         return Response(results, status=response_status.HTTP_200_OK)
 
     def retrieve(self, request, uuid=None, format=None):
-        instance = self.queryset_instance(uuid)
-        serializer = RetrieveSpreadSerializer(instance, context=self.context)
+        valid_uuid = True
+        try:
+            UUID(uuid).version
+        except ValueError:
+            valid_uuid = False
+
+        if valid_uuid:
+            instance = self.queryset_instance(uuid)
+            serializer = RetrieveSpreadSerializer(
+                instance,
+                context=self.context
+            )
+        else:
+            instance = self.queryset_public_instance(uuid)
+            serializer = RetrievePublicSpreadSerializer(
+                instance,
+                context=self.context
+            )
+
         return Response(serializer.data, status=response_status.HTTP_200_OK)

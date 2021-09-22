@@ -19,27 +19,28 @@ class ListProductSerializer(BaseProductSerializer):
         view_name='feeder_api:product-detail',
         lookup_field='uuid'
     )
-
-    class Meta(BaseProductSerializer.Meta):
-        fields = ('permalink', 'uuid', 'label', 'description',)
-
-
-class RetrieveProductSerializer(BaseProductSerializer):
     listing = serializers.UUIDField(source='listing.uuid')
     listing_label = serializers.CharField(source='listing.label')
 
     class Meta(BaseProductSerializer.Meta):
+        fields = ('permalink', 'uuid', 'listing', 'listing_label',
+                  'label', 'description',)
+
+
+class RetrieveProductSerializer(ListProductSerializer):
+    class Meta(ListProductSerializer.Meta):
         fields = '__all__'
 
 
 class CreateProductSerializer(BaseProductSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     listing = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=Listing.objects.all()
     )
 
     class Meta(BaseProductSerializer.Meta):
-        fields = ('listing', 'label', 'description',)
+        fields = ('user', 'listing', 'label', 'description',)
 
     def to_representation(self, instance):
         serializer = RetrieveProductSerializer(instance, context=self.context)
@@ -49,9 +50,16 @@ class CreateProductSerializer(BaseProductSerializer):
     def create(self, validated_data):
         label = validated_data.pop('label', None)
         listing = validated_data.pop('listing', None)
+        user = validated_data.pop('user', None)
 
         instance, _created = Product.objects \
-            .update_or_create(label=label, listing=listing, defaults=validated_data)
+            .update_or_create(
+                label=label,
+                user=user,
+                listing=listing,
+                defaults=validated_data
+            )
+
         return instance
 
 

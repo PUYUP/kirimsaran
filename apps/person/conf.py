@@ -4,7 +4,7 @@ from appconf import AppConf
 
 
 class PersonAppConf(AppConf):
-    VERIFICATION_FIELDS = ['email']
+    VERIFICATION_FIELDS = ['msisdn', 'email']
 
     class Meta:
         perefix = 'person'

@@ -12,6 +12,7 @@ PROJECT_APPS = [
 
     'apps.person',
     'apps.feeder',
+    'apps.notifier',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + PROJECT_APPS

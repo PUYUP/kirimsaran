@@ -16,8 +16,15 @@ SecureCode = apps.get_model('person', 'SecureCode')
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
-    # Each custom field must write_only
+    # Each active custom field must write_only
     validation = ValidationSerializer(write_only=True, required=False)
+
+    # Each static custom field must read_only
+    profile = RetrieveProfileSerializer(
+        read_only=True,
+        many=False,
+        required=False
+    )
 
     class Meta:
         model = UserModel
@@ -67,13 +74,41 @@ class BaseUserSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
 
-class RetrieveUserSerializer(BaseUserSerializer):
-    profile = RetrieveProfileSerializer(many=False, required=False)
+class DynamicFieldsModelSerializer(BaseUserSerializer):
+    """
+    A ModelSerializer that takes an additional `fields` argument that
+    controls which fields should be displayed.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Don't pass the 'fields' arg up to the superclass
+        fields = kwargs.pop('fields', None)
+
+        # Instantiate the superclass normally
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
+class ListUserSerializer(BaseUserSerializer):
+    permalink = serializers.HyperlinkedIdentityField(
+        view_name='person_api:user-detail',
+        lookup_field='hexid'
+    )
 
     class Meta(BaseUserSerializer.Meta):
-        fields = ('hexid', 'username', 'email', 'msisdn',
-                  'is_email_verified', 'is_msisdn_verified',
-                  'profile',)
+        fields = ('permalink', 'hexid', 'name', 'username', 'profile',)
+
+
+class RetrieveUserSerializer(DynamicFieldsModelSerializer):
+    class Meta(DynamicFieldsModelSerializer.Meta):
+        fields = ('hexid', 'name', 'username', 'email', 'is_email_verified',
+                  'msisdn', 'is_msisdn_verified', 'profile',)
 
 
 class CreateUserSerializer(BaseUserSerializer):

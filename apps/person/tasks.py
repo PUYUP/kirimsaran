@@ -7,7 +7,7 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives
 # Celery config
 from celery import shared_task
 
-APP_NAME = 'Kirim Saran'
+APP_NAME = 'CLI Exec'
 
 
 @shared_task
@@ -18,23 +18,23 @@ def send_securecode_email(data):
     passcode = data.get('passcode', None)
 
     if to and passcode:
-        subject = _("Kode Keamanan")
-        from_email = '%s <noreply@cliexec.com>' % APP_NAME
+        subject = _("Secure Code")
+        from_email = '%s <cliexecboarding@gmail.com>' % APP_NAME
 
         # Message
         text = _(
-            "JANGAN BERIKAN Kode Keamanan ini kepada siapapun "
-            "TERMASUK PIHAK %(app_label)s. Kode Kode Keamanan Anda: " +
+            "Don't share this Secure Code to everyone "
+            "Including %(app_label)s team. Your Secure Code is: " +
             passcode
         ) % {'app_label': APP_NAME}
 
         html = _(
-            "JANGAN BERIKAN Kode Keamanan ini kepada siapapun "
-            "TERMASUK PIHAK %(app_label)s.<br />"
-            "Kode Kode Keamanan Anda: "
+            "Don't share this Secure Code to everyone "
+            "Including %(app_label)s team.<br />"
+            "Your Secure Code is: "
             "<strong>" + passcode + "</strong>"
             "<br /><br />"
-            "Salam, <br /> <strong>%(app_label)s</strong>"
+            "Happy Coding, <br /> <strong>%(app_label)s</strong>"
         ) % {'app_label': APP_NAME}
 
         if subject and from_email:
@@ -73,5 +73,4 @@ def send_securecode_msisdn(data):
         pass
     else:
         logging.warning(
-            _("Tried to send email to non-existing SecureCode Code")
-        )
+            _("Tried to send email to non-existing SecureCode Code"))

@@ -21,7 +21,7 @@ class ListFragmentSerializer(BaseFragmentSerializer):
     )
 
     class Meta(BaseFragmentSerializer.Meta):
-        fields = ('permalink', 'uuid', 'label', 'description', 'reward',)
+        fields = ('permalink', 'uuid', 'label', 'description', 'expiry_at',)
 
 
 class RetrieveFragmentSerializer(BaseFragmentSerializer):
@@ -33,13 +33,15 @@ class RetrieveFragmentSerializer(BaseFragmentSerializer):
 
 
 class CreateFragmentSerializer(BaseFragmentSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     product = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=Product.objects.all()
     )
 
     class Meta(BaseFragmentSerializer.Meta):
-        fields = ('product', 'label', 'description', 'reward',)
+        fields = ('product', 'user', 'label', 'start_at',
+                  'expiry_at', 'description',)
 
     def to_representation(self, instance):
         serializer = RetrieveFragmentSerializer(instance, context=self.context)
@@ -57,7 +59,7 @@ class CreateFragmentSerializer(BaseFragmentSerializer):
 
 class UpdateFragmentSerializer(BaseFragmentSerializer):
     class Meta(BaseFragmentSerializer.Meta):
-        fields = ('label', 'description', 'reward',)
+        fields = ('label', 'start_at', 'expiry_at', 'description',)
 
     def to_representation(self, instance):
         serializer = RetrieveFragmentSerializer(instance, context=self.context)

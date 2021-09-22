@@ -44,6 +44,17 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(PROJECT_PATH, 'static/'),)
 
 
+# Django CORS
+# ------------------------------------------------------------------------------
+# https://pypi.org/project/django-cors-headers/
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:4200'
+]
+
+
 # Django Debug Toolbar
 # ------------------------------------------------------------------------------
 # https://django-debug-toolbar.readthedocs.io/en/stable/installation.html
