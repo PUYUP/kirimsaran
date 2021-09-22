@@ -69,6 +69,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://kirimsaran.com',
+    'https://www.kirimsaran.com',
     'https://dashboard.kirimsaran.com',
 ]
 
