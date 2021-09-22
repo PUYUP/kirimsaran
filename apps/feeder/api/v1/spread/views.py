@@ -54,7 +54,8 @@ class SpreadViewSet(BaseViewSet):
             "content_type": "fragment",
             "object_id": "uuid4",
             "allocation": 14,
-            "expiry_at": "Date time"
+            "expiry_at": "Date time",
+            "introduction": "A something..."
         }
 
 
@@ -63,7 +64,8 @@ class SpreadViewSet(BaseViewSet):
 
         {
             "allocation": 14,
-            "expiry_at": "Date time"
+            "expiry_at": "Date time",
+            "introduction": "A something..."
         }
     """
     lookup_field = 'uuid'

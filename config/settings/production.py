@@ -58,7 +58,8 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
     '.kirimsaran.com',
-    'https://dashboard.kirimsaran.com',
+    'dashboard.kirimsaran.com',
+    'puyup-app.web.app',
 ]
 
 
@@ -71,6 +72,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://kirimsaran.com',
     'https://www.kirimsaran.com',
     'https://dashboard.kirimsaran.com',
+    'https://puyup-app.web.app',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [

@@ -36,6 +36,7 @@ class AbstractSpread(AbstractCommonField):
         default=Cause.N
     )
     # set to 0 for unlimited
+    introduction = models.TextField(null=True, blank=True)
     allocation = models.BigIntegerField(default=0)
     start_at = models.DateTimeField(auto_now_add=True)
     expiry_at = models.DateTimeField(null=True, blank=True)

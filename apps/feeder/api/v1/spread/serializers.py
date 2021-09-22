@@ -1,4 +1,3 @@
-from apps.feeder.api.v1.reward.serializers import RetrieveRewardSerializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from django.apps import apps
@@ -25,7 +24,7 @@ class ListSpreadSerializer(BaseSpreadSerializer):
 
     class Meta(BaseSpreadSerializer.Meta):
         fields = ('permalink', 'uuid', 'allocation', 'expiry_at',
-                  'identifier', 'qrcode', 'url',)
+                  'identifier', 'qrcode', 'url', 'introduction',)
 
 
 class RetrieveSpreadSerializer(BaseSpreadSerializer):
@@ -48,7 +47,8 @@ class RetrievePublicSpreadSerializer(BaseSpreadSerializer):
             'content_object_uuid',
             'identifier',
             'rewards',
-            'product'
+            'product',
+            'introduction'
         )
 
     def get_rewards(self, instance):
@@ -82,7 +82,8 @@ class CreateSpreadSerializer(BaseSpreadSerializer):
     object_id = serializers.UUIDField(write_only=True)
 
     class Meta(BaseSpreadSerializer.Meta):
-        fields = ('content_type', 'object_id', 'allocation', 'expiry_at',)
+        fields = ('content_type', 'object_id', 'allocation',
+                  'expiry_at', 'introduction',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -133,7 +134,7 @@ class CreateSpreadSerializer(BaseSpreadSerializer):
 
 class UpdateSpreadSerializer(BaseSpreadSerializer):
     class Meta(BaseSpreadSerializer.Meta):
-        fields = ('allocation', 'expiry_at',)
+        fields = ('allocation', 'expiry_at', 'introduction',)
 
     def to_representation(self, instance):
         serializer = RetrieveSpreadSerializer(instance, context=self.context)
