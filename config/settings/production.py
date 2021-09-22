@@ -127,7 +127,7 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
-        'KEY_PREFIX': 'miniloka_cache'
+        'KEY_PREFIX': 'meteora_cache'
     }
 }
 
