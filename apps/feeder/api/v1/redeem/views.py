@@ -48,7 +48,10 @@ class RedeemViewSet(BaseViewSet):
             .prefetch_related('user', 'coupon', 'coupon__reward') \
             .select_related('user', 'coupon', 'coupon__reward') \
             .annotate(is_taken=Exists(taken_subquery)) \
-            .filter(coupon__reward__fragment__listing__user_id=self.request.user.id)
+            .filter(
+                coupon__reward__fragment__listing__user_id=self.request.user.id,
+                coupon__is_active=True
+            )
 
     def queryset_instance(self, uuid, for_update=False):
         try:
