@@ -1,7 +1,7 @@
 from copy import copy
 
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
@@ -85,9 +85,7 @@ class SuggestViewSet(BaseViewSet):
             .prefetch_related('user', 'spread', 'spread__content_object', 'canals',
                               'coupons', 'coupons__reward', 'interactions') \
             .select_related('user', 'spread') \
-            .annotate(
-                count_interaction=Count('interactions')
-            )
+            .annotate(count_interaction=Count('interactions'))
 
     def queryset_instance(self, uuid, for_update=False):
         try:
@@ -158,6 +156,7 @@ class SuggestViewSet(BaseViewSet):
         rating = request.query_params.get('rating', None)
         product = request.query_params.get('product', None)
         fragment = request.query_params.get('fragment', None)
+        keyword = request.query_params.get('keyword', None)
 
         if permit == 'private':
             # only owner can see data
@@ -190,6 +189,20 @@ class SuggestViewSet(BaseViewSet):
                     queryset = queryset.filter(spread__fragment__uuid=fragment)
                 except Exception as e:
                     raise ValidationError(detail=str(e))
+
+            if keyword:
+                # make list
+                keyword_list = keyword.split(',')
+
+                # clean space
+                keywords = [k.strip() for k in keyword_list]
+
+                # querying
+                q_description = Q()
+                for q in keywords:
+                    q_description |= Q(description__icontains=q)
+
+                queryset = queryset.filter(q_description)
 
         elif permit == 'public':
             queryset = self.queryset().filter(user_id=request.user.id) \

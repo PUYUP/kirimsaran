@@ -51,16 +51,14 @@ X_FRAME_OPTIONS = 'DENY'
 # Django csrf
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/2.2/ref/csrf/
-CSRF_COOKIE_DOMAIN = '.cliptask.com'
+CSRF_COOKIE_DOMAIN = '.kirimsaran.com'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
-    '.cliptask.com',
     '.kirimsaran.com',
-    'puyup-app.web.app',
-    'puyup-app.firebaseapp.com',
+    'https://dashboard.kirimsaran.com',
 ]
 
 
@@ -70,9 +68,8 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    'https://puyup-app.web.app',
-    'https://puyup-app.firebaseapp.com',
-    'https://kirimsaran.com'
+    'https://kirimsaran.com',
+    'https://dashboard.kirimsaran.com',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
