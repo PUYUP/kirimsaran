@@ -1,5 +1,6 @@
 import logging
 import smtplib
+import requests
 
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
@@ -64,13 +65,29 @@ def send_securecode_email(data):
 
 @shared_task
 def send_securecode_msisdn(data):
-    logging.info(_("Send secure code msisdn run"))
+    msisdn = data.get('msisdn')
+    passcode = data.get('passcode')
+    message = 'Kode keamanan: %s. Jangan berikan ke siapapun.' % (passcode)
 
-    to = data.get('msisdn', None)
-    passcode = data.get('passcode', None)
+    # add 62
+    if msisdn[0] == '0':
+        msisdn = msisdn[1:]
 
-    if to and passcode:
-        pass
-    else:
-        logging.warning(
-            _("Tried to send email to non-existing SecureCode Code"))
+    msisdn = '{}{}'.format('62', msisdn)
+    api_key = 'BUtyekOTMA3woP09cbh6VnAkAI2fxmd8LTqaFheQgJ4='
+    cliend_id = 'd973df88-5df9-4dc0-ba71-79939aae16e8'
+    sender_id = 'TCASTSMS'
+    url = 'https://api.tcastsms.net/api/v2/SendSMS'
+
+    payload = {
+        "ApiKey": api_key,
+        "ClientId": cliend_id,
+        "SenderId": sender_id,
+        "Message": message,
+        "MobileNumbers": msisdn,
+        "Is_Unicode": False,
+        "Is_Flash": False
+    }
+
+    r = requests.get(url, params=payload)
+    logging.info(r.status_code)

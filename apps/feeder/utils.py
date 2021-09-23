@@ -1,4 +1,3 @@
-from django.core.mail import message
 import requests
 import hashlib
 import calendar
