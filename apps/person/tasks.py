@@ -67,8 +67,8 @@ def send_securecode_email(data):
 def send_securecode_msisdn(data):
     msisdn = data.get('msisdn')
     passcode = data.get('passcode')
-    message = 'KIRIM SARAN - Kode keamanan: %s. Jangan berikan ke siapapun.' % (
-        passcode)
+    message = '%s - Kode keamanan: %s. Jangan berikan ke siapapun.' % (
+        APP_NAME, passcode)
 
     # add 62
     if msisdn[0] == '0':
