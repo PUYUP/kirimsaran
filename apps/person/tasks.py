@@ -8,7 +8,7 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives
 # Celery config
 from celery import shared_task
 
-APP_NAME = 'CLI Exec'
+APP_NAME = 'Kirim Saran'
 
 
 @shared_task
