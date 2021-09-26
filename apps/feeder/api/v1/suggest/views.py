@@ -205,8 +205,17 @@ class SuggestViewSet(BaseViewSet):
                 queryset = queryset.filter(q_description)
 
         elif permit == 'public':
-            queryset = self.queryset().filter(user_id=request.user.id) \
-                .order_by('-create_at')
+            # by msisdn
+            msisdn = request.user.msisdn
+            is_msisdn_verified = request.user.is_msisdn_verified
+            q_pub = Q(user_id=request.user.id)
+
+            if is_msisdn_verified:
+                q_pub |= Q(canals__method='phone', canals__value=msisdn)
+
+            queryset = self.queryset().filter(q_pub) \
+                .order_by('-create_at') \
+                .distinct()
 
         paginator = _PAGINATOR.paginate_queryset(queryset, request)
         serializer = ListSuggestSerializer(
