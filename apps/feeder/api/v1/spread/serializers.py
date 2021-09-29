@@ -11,9 +11,14 @@ Spread = apps.get_registered_model('feeder', 'Spread')
 
 
 class BaseSpreadSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+
     class Meta:
         model = Spread
         fields = '__all__'
+
+    def get_product(self, instance):
+        return instance.product('label')
 
 
 class ListSpreadSerializer(BaseSpreadSerializer):
@@ -72,9 +77,6 @@ class RetrievePublicSpreadSerializer(BaseSpreadSerializer):
             })
 
         return ret
-
-    def get_product(self, instance):
-        return instance.product('label')
 
 
 class CreateSpreadSerializer(BaseSpreadSerializer):
