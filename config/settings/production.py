@@ -66,14 +66,16 @@ CSRF_TRUSTED_ORIGINS = [
 # Django CORS
 # ------------------------------------------------------------------------------
 # https://pypi.org/project/django-cors-headers/
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+"""
 CORS_ALLOWED_ORIGINS = [
     'https://kirimsaran.com',
     'https://www.kirimsaran.com',
     'https://dashboard.kirimsaran.com',
     'https://puyup-app.web.app',
 ]
+"""
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'ngsw-bypass',
